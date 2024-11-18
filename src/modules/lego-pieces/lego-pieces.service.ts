@@ -5,12 +5,15 @@ import { Repository } from 'typeorm';
 import { CreateLegoPieceDto } from './dtos/create-lego-piece.dto';
 import { UpdateLegoPieceDto } from './dtos/update-lego-piece.dto';
 import { LegoPieceDto } from './dtos/lego-piece.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { LegoPieceEvent } from './events/lego-piece.event';
 
 @Injectable()
 export class LegoPiecesService {
   constructor(
     @InjectRepository(LegoPiece)
     private readonly legoPieceRepository: Repository<LegoPiece>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -19,8 +22,8 @@ export class LegoPiecesService {
    * @returns The corresponding LegoPieceDto.
    */
   private mapToDto(legoPiece: LegoPiece): LegoPieceDto {
-    const { lego_piece_id, name, price } = legoPiece;
-    return { lego_piece_id, name, price };
+    const { id, name, price } = legoPiece;
+    return { id, name, price };
   }
 
   /**
@@ -31,6 +34,10 @@ export class LegoPiecesService {
   async create(createLegoPieceDto: CreateLegoPieceDto): Promise<LegoPieceDto> {
     const legoPiece = this.legoPieceRepository.create(createLegoPieceDto);
     const savedLegoPiece = await this.legoPieceRepository.save(legoPiece);
+    this.eventEmitter.emit(
+      'legoPiece.created',
+      new LegoPieceEvent(savedLegoPiece.id),
+    );
     return this.mapToDto(savedLegoPiece);
   }
 
@@ -49,9 +56,9 @@ export class LegoPiecesService {
    * @returns The requested Lego piece as a DTO.
    * @throws NotFoundException if the Lego piece does not exist.
    */
-  async findById(id: string): Promise<LegoPieceDto> {
+  async findById(id: number): Promise<LegoPieceDto> {
     const legoPiece = await this.legoPieceRepository.findOneBy({
-      lego_piece_id: id,
+      id: id,
     });
     if (!legoPiece) {
       throw new NotFoundException(`LegoPiece with ID ${id} not found`);
@@ -67,12 +74,16 @@ export class LegoPiecesService {
    * @throws NotFoundException if the Lego piece does not exist.
    */
   async update(
-    id: string,
+    id: number,
     updateLegoPieceDto: UpdateLegoPieceDto,
   ): Promise<LegoPieceDto> {
     const legoPiece = await this.findById(id);
     Object.assign(legoPiece, updateLegoPieceDto);
     const updatedLegoPiece = await this.legoPieceRepository.save(legoPiece);
+    this.eventEmitter.emit(
+      'legoPiece.updated',
+      new LegoPieceEvent(updatedLegoPiece.id),
+    );
     return this.mapToDto(updatedLegoPiece);
   }
 
@@ -81,10 +92,11 @@ export class LegoPiecesService {
    * @param id - The UUID of the Lego piece to delete.
    * @throws NotFoundException if the Lego piece does not exist.
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: number): Promise<void> {
     const result = await this.legoPieceRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`LegoPiece with ID ${id} not found`);
     }
+    this.eventEmitter.emit('legoPiece.deleted', new LegoPieceEvent(id));
   }
 }

@@ -1,24 +1,22 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  Index,
-  VersionColumn,
-} from 'typeorm';
+import { ColumnNumericTransformer } from 'src/common/transformers/column-numeric.transformer';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('lego_pieces')
-@Index('idx_lego_pieces_version', ['version']) // Index for Optimistic Locking
 export class LegoPiece {
-  @PrimaryGeneratedColumn('uuid')
-  lego_piece_id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
+  @Column()
+  @Index()
   name: string;
 
-  @Column({ type: 'numeric', precision: 10, scale: 2, nullable: false })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+    transformer: new ColumnNumericTransformer(),
+  })
+  @Index()
   price: number;
-
-  @Column({ type: 'smallint', default: 1, nullable: false })
-  @VersionColumn()
-  version: number;
 }

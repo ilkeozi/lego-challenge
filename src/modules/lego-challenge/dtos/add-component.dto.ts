@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsString, ValidateNested } from 'class-validator';
-import { ComponentDto } from './component.dto';
+import { IsArray, IsNumber, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ComponentDto } from './component.dto';
 
 export class AddComponentsDto {
-  @ApiProperty({ description: 'ID of the parent Lego Box', example: 'uuid-1' })
-  @IsString()
-  parent_item_id: string;
+  @ApiProperty({ description: 'ID of the parent Lego Box', example: 5 })
+  @IsNumber()
+  parent_item_id: number;
 
   @ApiProperty({
     description: 'List of components to add',

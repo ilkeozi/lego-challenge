@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString, IsNumber } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 
-export class CreateComponentDto {
+export class ComponentDto {
   @ApiProperty({
     description: 'Type of the component (piece or set)',
     example: 'piece',
@@ -9,9 +9,9 @@ export class CreateComponentDto {
   @IsEnum(['piece', 'set'])
   component_type: 'piece' | 'set';
 
-  @ApiProperty({ description: 'ID of the component', example: 'uuid-1' })
-  @IsString()
-  component_id: string;
+  @ApiProperty({ description: 'ID of the component', example: 5 })
+  @IsNumber()
+  component_id: number;
 
   @ApiProperty({ description: 'Quantity of the component', example: 2 })
   @IsNumber()

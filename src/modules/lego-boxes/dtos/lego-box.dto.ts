@@ -1,12 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
+import { LegoBoxPiece } from 'src/infrastructure/database/entities/lego-box-piece.entity';
+import { NestedLegoBox } from 'src/infrastructure/database/entities/nested-lego-box.entity';
 
 export class LegoBoxDto {
   @ApiProperty({
     description: 'Unique identifier for the Lego box',
-    example: 'uuid-1',
+    example: 1,
   })
-  lego_box_id: string;
+  id: number;
 
   @ApiProperty({
     description: 'Name of the Lego box',
@@ -14,12 +16,15 @@ export class LegoBoxDto {
   })
   name: string;
 
-  @Exclude() // Excluded during transformation
-  direct_price?: number;
+  @ApiProperty({
+    description: 'Total price of the Lego box',
+    example: 150.25,
+  })
+  totalPrice?: number;
 
-  @Exclude() // Excluded during transformation
-  nested_price?: number;
+  @Exclude()
+  pieces?: LegoBoxPiece[];
 
-  @Exclude() // Excluded during transformation
-  version?: number; // Excluded, no need for @ApiProperty
+  @Exclude()
+  childBoxes?: NestedLegoBox[];
 }

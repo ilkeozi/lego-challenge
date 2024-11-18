@@ -51,7 +51,7 @@ export class LegoPiecesController {
   })
   @ApiResponse({ status: 404, description: 'Lego piece not found' })
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<LegoPieceDto> {
+  async findOne(@Param('id') id: number): Promise<LegoPieceDto> {
     return this.legoPiecesService.findById(id);
   }
 
@@ -65,7 +65,7 @@ export class LegoPiecesController {
   @ApiResponse({ status: 404, description: 'Lego piece not found' })
   @Put(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateLegoPieceDto: UpdateLegoPieceDto,
   ): Promise<LegoPieceDto> {
     return this.legoPiecesService.update(id, updateLegoPieceDto);
@@ -76,7 +76,7 @@ export class LegoPiecesController {
   @ApiResponse({ status: 200, description: 'The Lego piece has been deleted.' })
   @ApiResponse({ status: 404, description: 'Lego piece not found' })
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id') id: number): Promise<void> {
     return this.legoPiecesService.delete(id);
   }
 }

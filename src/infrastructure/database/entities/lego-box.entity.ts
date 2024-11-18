@@ -1,39 +1,28 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  Index,
-  VersionColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { LegoBoxPiece } from './lego-box-piece.entity';
+import { NestedLegoBox } from './nested-lego-box.entity';
+import { ColumnNumericTransformer } from 'src/common/transformers/column-numeric.transformer';
 
 @Entity('lego_boxes')
-@Index('idx_lego_boxes_version', ['version']) // Index for Optimistic Locking
 export class LegoBox {
-  @PrimaryGeneratedColumn('uuid')
-  lego_box_id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
+  @Column()
   name: string;
 
   @Column({
-    type: 'numeric',
+    type: 'decimal',
     precision: 10,
     scale: 2,
     default: 0,
-    nullable: false,
+    transformer: new ColumnNumericTransformer(),
   })
-  direct_price: number;
+  totalPrice: number;
 
-  @Column({
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-    default: 0,
-    nullable: false,
-  })
-  nested_price: number;
+  @OneToMany(() => LegoBoxPiece, (legoBoxPiece) => legoBoxPiece.box)
+  pieces: LegoBoxPiece[];
 
-  @Column({ type: 'smallint', default: 1, nullable: false })
-  @VersionColumn()
-  version: number;
+  @OneToMany(() => NestedLegoBox, (nestedLegoBox) => nestedLegoBox.parentBox)
+  childBoxes: NestedLegoBox[];
 }

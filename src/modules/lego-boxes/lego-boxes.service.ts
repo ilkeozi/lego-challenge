@@ -1,42 +1,61 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LegoBoxRepository } from 'src/infrastructure/database/repositories/lego-box.repository';
+import { Repository } from 'typeorm';
+import { LegoBox } from 'src/infrastructure/database/entities/lego-box.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateLegoBoxDto } from './dtos/create-lego-box.dto';
 import { UpdateLegoBoxDto } from './dtos/update-lego-box.dto';
 import { LegoBoxDto } from './dtos/lego-box.dto';
-import { LegoBox } from 'src/infrastructure/database/entities/lego-box.entity';
+import { LegoBoxEvent } from './events/lego-box.event';
+import { EventWaiterService } from 'src/core/services/event-waiter.service';
 
 @Injectable()
 export class LegoBoxesService {
   constructor(
-    @InjectRepository(LegoBoxRepository)
-    private readonly legoBoxRepository: LegoBoxRepository,
+    @InjectRepository(LegoBox)
+    private readonly legoBoxRepository: Repository<LegoBox>,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly eventWaiterService: EventWaiterService,
   ) {}
 
   /**
    * Maps a LegoBox entity to a LegoBoxDto.
-   * @param legoBox - The LegoBox entity.
-   * @returns The corresponding LegoBoxDto.
+   * Converts the internal database entity to a Data Transfer Object (DTO) for external use.
+   *
+   * @param {LegoBox} legoBox - The LegoBox entity to map.
+   * @returns {LegoBoxDto} - The DTO representation of the LegoBox entity.
    */
   private mapToDto(legoBox: LegoBox): LegoBoxDto {
-    const { lego_box_id, name } = legoBox; // Only include fields in LegoBoxDto
-    return { lego_box_id, name };
+    const { id, name, totalPrice } = legoBox;
+    return { id, name, totalPrice };
   }
 
   /**
-   * Create a new Lego box.
-   * @param createLegoBoxDto - DTO containing the name and direct price of the Lego box.
-   * @returns The created Lego box as a DTO.
+   * Creates a new Lego box and emits a `box.created` event.
+   *
+   * @param {CreateLegoBoxDto} createLegoBoxDto - The data required to create a new Lego box.
+   * @returns {Promise<LegoBoxDto>} - The created Lego box as a DTO.
+   * @emits {LegoBoxEvent} - Emits an event containing the ID of the newly created Lego box.
    */
   async create(createLegoBoxDto: CreateLegoBoxDto): Promise<LegoBoxDto> {
     const legoBox = this.legoBoxRepository.create(createLegoBoxDto);
     const savedLegoBox = await this.legoBoxRepository.save(legoBox);
+
+    await this.eventWaiterService.emitAndWait(
+      'box.created',
+      new LegoBoxEvent(savedLegoBox.id, savedLegoBox.name),
+      'box.priceUpdated',
+      (payload) => payload === savedLegoBox.id,
+      1000,
+    );
+
     return this.mapToDto(savedLegoBox);
   }
 
   /**
-   * Retrieve all Lego boxes.
-   * @returns An array of all Lego boxes as DTOs.
+   * Retrieves all Lego boxes.
+   *
+   * @returns {Promise<LegoBoxDto[]>} - An array of all Lego boxes as DTOs.
    */
   async findAll(): Promise<LegoBoxDto[]> {
     const legoBoxes = await this.legoBoxRepository.find();
@@ -44,13 +63,14 @@ export class LegoBoxesService {
   }
 
   /**
-   * Retrieve a single Lego box by ID.
-   * @param id - The UUID of the Lego box.
-   * @returns The requested Lego box as a DTO.
-   * @throws NotFoundException if the Lego box does not exist.
+   * Retrieves a single Lego box by its ID.
+   *
+   * @param {number} id - The ID of the Lego box to retrieve.
+   * @returns {Promise<LegoBoxDto>} - The requested Lego box as a DTO.
+   * @throws {NotFoundException} - If the Lego box with the specified ID does not exist.
    */
-  async findById(id: string): Promise<LegoBoxDto> {
-    const legoBox = await this.legoBoxRepository.findOneBy({ lego_box_id: id });
+  async findById(id: number): Promise<LegoBoxDto> {
+    const legoBox = await this.legoBoxRepository.findOneBy({ id });
     if (!legoBox) {
       throw new NotFoundException(`LegoBox with ID ${id} not found`);
     }
@@ -58,63 +78,77 @@ export class LegoBoxesService {
   }
 
   /**
-   * Update an existing Lego box.
-   * @param id - The UUID of the Lego box to update.
-   * @param updateLegoBoxDto - DTO containing the fields to update.
-   * @returns The updated Lego box as a DTO.
-   * @throws NotFoundException if the Lego box does not exist.
+   * Updates an existing Lego box and emits a `box.updated` event.
+   *
+   * @param {number} id - The ID of the Lego box to update.
+   * @param {UpdateLegoBoxDto} updateLegoBoxDto - The data to update the Lego box with.
+   * @returns {Promise<LegoBoxDto>} - The updated Lego box as a DTO.
+   * @throws {NotFoundException} - If the Lego box with the specified ID does not exist.
+   * @emits {LegoBoxEvent} - Emits an event containing the ID of the updated Lego box.
    */
   async update(
-    id: string,
+    id: number,
     updateLegoBoxDto: UpdateLegoBoxDto,
   ): Promise<LegoBoxDto> {
     const legoBox = await this.findById(id);
     Object.assign(legoBox, updateLegoBoxDto);
     const updatedLegoBox = await this.legoBoxRepository.save(legoBox);
+
+    await this.eventWaiterService.emitAndWait(
+      'box.updated',
+      new LegoBoxEvent(updatedLegoBox.id, updatedLegoBox.name),
+      'box.priceUpdated',
+      (payload) => payload === updatedLegoBox.id,
+      1000,
+    );
+
     return this.mapToDto(updatedLegoBox);
   }
 
   /**
-   * Delete a Lego box by ID.
-   * @param id - The UUID of the Lego box to delete.
-   * @throws NotFoundException if the Lego box does not exist.
+   * Deletes a Lego box and emits a `box.deleted` event.
+   *
+   * @param {number} id - The ID of the Lego box to delete.
+   * @throws {NotFoundException} - If the Lego box with the specified ID does not exist.
+   * @emits {LegoBoxEvent} - Emits an event containing the ID of the deleted Lego box.
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: number): Promise<void> {
     const result = await this.legoBoxRepository.delete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`LegoBox with ID ${id} not found`);
     }
+
+    this.eventEmitter.emit('box.deleted', new LegoBoxEvent(id));
+    await this.eventWaiterService.emitAndWait(
+      'box.deleted',
+      new LegoBoxEvent(id),
+      'box.priceUpdated',
+      (payload) => payload === id,
+      1000,
+    );
   }
 
   /**
-   * Calculate and return the total price of a Lego box.
-   * @param id - The UUID of the Lego box.
-   * @returns The total price (direct + nested).
+   * Updates the total price of a Lego box and emits a `box.priceUpdated` event.
+   *
+   * @param {number} boxId - The ID of the Lego box to update the price for.
+   * @param {number} totalPrice - The new total price for the Lego box.
+   * @returns {Promise<void>} - Resolves when the price is successfully updated.
+   * @throws {NotFoundException} - If the Lego box with the specified ID does not exist.
+   * @emits {LegoBoxEvent} - Emits an event containing the ID and updated price of the Lego box.
    */
-  async getTotalPrice(id: string): Promise<number> {
-    return await this.legoBoxRepository.getTotalPrice(id);
-  }
+  async updateTotalPrice(boxId: number, totalPrice: number): Promise<void> {
+    const box = await this.legoBoxRepository.findOneBy({ id: boxId });
+    if (!box) {
+      throw new NotFoundException(`LegoBox with ID ${boxId} not found`);
+    }
 
-  /**
-   * Update the direct price of a Lego box.
-   * @param id - The UUID of the Lego box.
-   */
-  async updateDirectPrice(id: string): Promise<void> {
-    await this.legoBoxRepository.updateDirectPrice(id);
-  }
+    box.totalPrice = totalPrice;
+    await this.legoBoxRepository.save(box);
 
-  /**
-   * Update the nested price of a Lego box.
-   * @param id - The UUID of the Lego box.
-   */
-  async updateNestedPrice(id: string): Promise<void> {
-    await this.legoBoxRepository.updateNestedPrice(id);
-  }
-
-  /**
-   * Refresh the materialized view for Lego box price aggregation.
-   */
-  async refreshMaterializedView(): Promise<void> {
-    await this.legoBoxRepository.refreshMaterializedView();
+    this.eventEmitter.emit(
+      'box.priceUpdated',
+      new LegoBoxEvent(boxId, box.name, totalPrice),
+    );
   }
 }

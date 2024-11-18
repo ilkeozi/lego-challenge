@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateLegoBoxDto {
   @ApiProperty({
@@ -8,8 +8,9 @@ export class CreateLegoBoxDto {
     example: 'Classic Bricks Set',
   })
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @Exclude()
-  direct_price?: number;
+  totalPrice?: number;
 }

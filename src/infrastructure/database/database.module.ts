@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
 import { LegoPiece } from './entities/lego-piece.entity';
-import { LegoBoxComponent } from './entities/lego-box-component.entity';
 import { LegoBox } from './entities/lego-box.entity';
-import { LegoBoxComponentRepository } from './repositories/lego-box-component.repository';
-import { LegoBoxRepository } from './repositories/lego-box.repository';
+import { NestedLegoBox } from './entities/nested-lego-box.entity';
+import { LegoBoxPiece } from './entities/lego-box-piece.entity';
 
 @Module({
   imports: [
@@ -21,21 +19,8 @@ import { LegoBoxRepository } from './repositories/lego-box.repository';
       migrations: [__dirname + '/migrations/*.ts'], // Migrations directory
       migrationsRun: true, // Automatically runs migrations
     }),
-    TypeOrmModule.forFeature([LegoPiece, LegoBox, LegoBoxComponent]), // Register entities
+    TypeOrmModule.forFeature([LegoPiece, LegoBox, NestedLegoBox, LegoBoxPiece]), // Register entities
   ],
-  providers: [
-    {
-      provide: LegoBoxRepository,
-      useFactory: (dataSource: DataSource) => new LegoBoxRepository(dataSource),
-      inject: [DataSource],
-    },
-    {
-      provide: LegoBoxComponentRepository,
-      useFactory: (dataSource: DataSource) =>
-        new LegoBoxComponentRepository(dataSource),
-      inject: [DataSource],
-    },
-  ],
-  exports: [TypeOrmModule, LegoBoxRepository, LegoBoxComponentRepository],
+  exports: [TypeOrmModule],
 })
 export class DatabaseModule {}
