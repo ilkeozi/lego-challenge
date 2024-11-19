@@ -44,9 +44,7 @@ export class LegoBoxPiecesService {
     await this.eventWaiterService.emitAndWait(
       'boxPiece.added',
       new LegoBoxPieceEvent(box.id, legoPiece.id, dto.amount),
-      'box.priceUpdated',
-      (payload) => payload === box.id,
-      1000,
+      'price.updated',
     );
 
     return this.mapToDto(savedPiece);
@@ -89,9 +87,7 @@ export class LegoBoxPiecesService {
         piece.piece.id,
         updatedPiece.amount,
       ),
-      'box.priceUpdated',
-      (payload) => payload === updatedPiece.box.id,
-      1000,
+      'price.updated',
     );
 
     return this.mapToDto(updatedPiece);
@@ -113,9 +109,7 @@ export class LegoBoxPiecesService {
       'boxPiece.deleted',
       new LegoBoxPieceEvent(piece.box.id, piece.piece.id),
 
-      'box.priceUpdated',
-      (payload) => payload === piece.box.id,
-      1000,
+      'price.updated',
     );
   }
 

@@ -82,9 +82,7 @@ describe('LegoBoxesService', () => {
       expect(eventWaiterService.emitAndWait).toHaveBeenCalledWith(
         'box.created',
         expect.objectContaining({ id: 1, name: 'Classic Set' }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
       expect(result).toEqual({ id: 1, name: 'Classic Set', totalPrice: 0 });
     });
@@ -121,9 +119,7 @@ describe('LegoBoxesService', () => {
       expect(eventWaiterService.emitAndWait).toHaveBeenCalledWith(
         'box.updated',
         expect.objectContaining({ id: 1, name: 'Updated Set A' }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
       expect(result).toEqual({ id: 1, name: 'Updated Set A', totalPrice: 50 });
     });
@@ -140,9 +136,7 @@ describe('LegoBoxesService', () => {
       expect(eventWaiterService.emitAndWait).toHaveBeenCalledWith(
         'box.deleted',
         expect.objectContaining({ id: 1 }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
     });
 
@@ -151,41 +145,6 @@ describe('LegoBoxesService', () => {
 
       await expect(service.delete(1)).rejects.toThrow(NotFoundException);
       expect(legoBoxRepository.delete).toHaveBeenCalledWith(1);
-    });
-  });
-
-  describe('updateTotalPrice', () => {
-    it('should update the total price of a Lego box and emit the box.priceUpdated event', async () => {
-      const mockLegoBox: LegoBox = {
-        id: 1,
-        name: 'Set A',
-        totalPrice: 0,
-        pieces: [],
-        childBoxes: [],
-      };
-
-      legoBoxRepository.findOneBy.mockResolvedValue(mockLegoBox);
-      legoBoxRepository.save.mockResolvedValue({
-        ...mockLegoBox,
-        totalPrice: 100,
-      });
-
-      await service.updateTotalPrice(1, 100);
-
-      expect(legoBoxRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
-      expect(legoBoxRepository.save).toHaveBeenCalledWith({
-        ...mockLegoBox,
-        totalPrice: 100,
-      });
-    });
-
-    it('should throw a NotFoundException if Lego box is not found', async () => {
-      legoBoxRepository.findOneBy.mockResolvedValue(null);
-
-      await expect(service.updateTotalPrice(1, 100)).rejects.toThrow(
-        NotFoundException,
-      );
-      expect(legoBoxRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
     });
   });
 });

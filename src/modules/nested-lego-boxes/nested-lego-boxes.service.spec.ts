@@ -111,9 +111,7 @@ describe('NestedLegoBoxesService', () => {
           childBoxId: 2,
           amount: 3,
         }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
       expect(result).toEqual({
         id: 1,
@@ -159,9 +157,7 @@ describe('NestedLegoBoxesService', () => {
           childBoxId: 2,
           amount: 5,
         }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
       expect(result).toEqual({
         id: 1,
@@ -199,9 +195,7 @@ describe('NestedLegoBoxesService', () => {
           childBoxId: 2,
           amount: 3,
         }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
     });
   });

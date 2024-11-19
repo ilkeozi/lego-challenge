@@ -19,8 +19,8 @@ export class EventWaiterService implements OnModuleDestroy {
     emitEvent: string,
     emitPayload: any,
     listenEvent: string,
-    listenFilter: (payload: T) => boolean,
-    timeout = 5000,
+    listenFilter: (payload: T) => boolean = () => true,
+    timeout = 1000,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
       const listener = (payload: T) => {

@@ -12,7 +12,9 @@ import { CoreModule } from './core/core.module';
 
 @Module({
   imports: [
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({
+      wildcard: true,
+    }),
     DatabaseModule,
     CoreModule,
     LegoChallengeModule,

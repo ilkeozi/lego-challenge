@@ -111,9 +111,7 @@ describe('LegoBoxPiecesService', () => {
           pieceId: 2,
           amount: 5,
         }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
       expect(result).toEqual({
         id: 1,
@@ -158,9 +156,7 @@ describe('LegoBoxPiecesService', () => {
           pieceId: 2,
           amount: 10,
         }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
       expect(result).toEqual({
         id: 1,
@@ -195,9 +191,7 @@ describe('LegoBoxPiecesService', () => {
           boxId: 1,
           pieceId: 2,
         }),
-        'box.priceUpdated',
-        expect.any(Function),
-        1000,
+        'price.updated',
       );
     });
   });

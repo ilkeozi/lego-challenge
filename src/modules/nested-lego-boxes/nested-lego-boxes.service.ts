@@ -64,9 +64,7 @@ export class NestedLegoBoxesService {
         dto.childBoxId,
         dto.amount,
       ),
-      'box.priceUpdated',
-      (payload) => payload === dto.parentBoxId,
-      1000,
+      'price.updated',
     );
 
     return this.mapToDto(savedNestedLegoBox);
@@ -123,9 +121,7 @@ export class NestedLegoBoxesService {
         nestedBox.childBox.id,
         updatedNestedBox.amount,
       ),
-      'box.priceUpdated',
-      (payload) => payload === nestedBox.parentBox.id,
-      1000,
+      'price.updated',
     );
 
     return this.mapToDto(updatedNestedBox);
@@ -157,9 +153,7 @@ export class NestedLegoBoxesService {
         nestedBox.childBox.id,
         nestedBox.amount,
       ),
-      'box.priceUpdated',
-      (payload) => payload === nestedBox.parentBox.id,
-      1000,
+      'price.updated',
     );
   }
 

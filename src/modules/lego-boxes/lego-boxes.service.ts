@@ -44,9 +44,7 @@ export class LegoBoxesService {
     await this.eventWaiterService.emitAndWait(
       'box.created',
       new LegoBoxEvent(savedLegoBox.id, savedLegoBox.name),
-      'box.priceUpdated',
-      (payload) => payload === savedLegoBox.id,
-      1000,
+      'price.updated',
     );
 
     return this.mapToDto(savedLegoBox);
@@ -97,9 +95,7 @@ export class LegoBoxesService {
     await this.eventWaiterService.emitAndWait(
       'box.updated',
       new LegoBoxEvent(updatedLegoBox.id, updatedLegoBox.name),
-      'box.priceUpdated',
-      (payload) => payload === updatedLegoBox.id,
-      1000,
+      'price.updated',
     );
 
     return this.mapToDto(updatedLegoBox);
@@ -122,33 +118,7 @@ export class LegoBoxesService {
     await this.eventWaiterService.emitAndWait(
       'box.deleted',
       new LegoBoxEvent(id),
-      'box.priceUpdated',
-      (payload) => payload === id,
-      1000,
-    );
-  }
-
-  /**
-   * Updates the total price of a Lego box and emits a `box.priceUpdated` event.
-   *
-   * @param {number} boxId - The ID of the Lego box to update the price for.
-   * @param {number} totalPrice - The new total price for the Lego box.
-   * @returns {Promise<void>} - Resolves when the price is successfully updated.
-   * @throws {NotFoundException} - If the Lego box with the specified ID does not exist.
-   * @emits {LegoBoxEvent} - Emits an event containing the ID and updated price of the Lego box.
-   */
-  async updateTotalPrice(boxId: number, totalPrice: number): Promise<void> {
-    const box = await this.legoBoxRepository.findOneBy({ id: boxId });
-    if (!box) {
-      throw new NotFoundException(`LegoBox with ID ${boxId} not found`);
-    }
-
-    box.totalPrice = totalPrice;
-    await this.legoBoxRepository.save(box);
-
-    this.eventEmitter.emit(
-      'box.priceUpdated',
-      new LegoBoxEvent(boxId, box.name, totalPrice),
+      'price.updated',
     );
   }
 }

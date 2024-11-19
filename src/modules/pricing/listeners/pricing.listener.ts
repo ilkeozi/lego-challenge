@@ -1,17 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PricingService } from '../pricing.service';
-import { LegoBoxesService } from 'src/modules/lego-boxes/lego-boxes.service';
 import { NestedBoxEvent } from 'src/modules/nested-lego-boxes/events/nested-box.event';
 import { LegoBoxEvent } from 'src/modules/lego-boxes/events/lego-box.event';
 import { LegoBoxPieceEvent } from 'src/modules/lego-box-pieces/events/lego-box-piece.event';
 
 @Injectable()
 export class PricingListener {
-  constructor(
-    private readonly pricingService: PricingService,
-    private readonly legoBoxesService: LegoBoxesService,
-  ) {}
+  constructor(private readonly pricingService: PricingService) {}
 
   /**
    * Handles events related to LegoBox actions and updates total price.
@@ -24,11 +20,7 @@ export class PricingListener {
         `Event box.* must contain a valid boxId in the payload.`,
       );
     }
-
-    const { totalPrice } = await this.pricingService.calculateTotalPrice(
-      payload.id,
-    );
-    await this.legoBoxesService.updateTotalPrice(payload.id, totalPrice);
+    await this.pricingService.recalculatePrices(payload.id);
   }
 
   /**
@@ -43,10 +35,7 @@ export class PricingListener {
       );
     }
 
-    const { totalPrice } = await this.pricingService.calculateTotalPrice(
-      payload.boxId,
-    );
-    await this.legoBoxesService.updateTotalPrice(payload.boxId, totalPrice);
+    await this.pricingService.recalculatePrices(payload.boxId);
   }
 
   /**
@@ -61,12 +50,6 @@ export class PricingListener {
       );
     }
 
-    const { totalPrice } = await this.pricingService.calculateTotalPrice(
-      payload.parentBoxId,
-    );
-    await this.legoBoxesService.updateTotalPrice(
-      payload.parentBoxId,
-      totalPrice,
-    );
+    await this.pricingService.recalculatePrices(payload.parentBoxId);
   }
 }
