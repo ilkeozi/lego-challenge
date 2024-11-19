@@ -6,6 +6,10 @@ The **Lego Challenge** project is a backend system for managing and manipulating
 
 This project uses **NestJS** as the framework, **TypeORM** for database interactions, and **PostgreSQL** as the database.
 
+Visit the Swagger UI for the API documentation and example requests at [http://lego-api.bunlar.org/api](http://lego-api.bunlar.org/api).
+
+The **Lego Challenge** tag in the API documentation includes responses to example requests, while other tags follow best practices for API design.
+
 ---
 
 ## Features
